@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\InkyBot\InkyBot.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4"/>
+        <PackageReference Include="ZXing.Net.Bindings.ImageSharp.V3" Version="0.16.16" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Assets\large.png" />
+        <EmbeddedResource Include="Assets\Envy Code R.ttf" />
+        <EmbeddedResource Include="Assets\Envy Code R Bold.ttf" />
+        <EmbeddedResource Include="Assets\galactic-simple.ttf" />
+    </ItemGroup>
+
+</Project>
