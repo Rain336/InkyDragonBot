@@ -17,26 +17,25 @@ internal static class DrawingUtils
 {
     private const string LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    public static void GenerateDisplayName(User user, Image<Rgba32> badge)
+    public static void GenerateDisplayName(User user, Image<Rgba32> badge, Rectangle drawArea)
     {
-        // 226px x 28 px @ 4px 124px
         var family = Assets.FontCollection.Get("Envy Code R");
         var font = family.CreateFont(24);
 
         var text = $"{user.FirstName} {user.LastName}";
-        var offset = Measure(text, font, 226, 28);
+        var offset = Measure(text, font, drawArea.Width, drawArea.Height);
         badge.Mutate(x => x.DrawText(
             text,
             font,
             Color.Black,
-            new PointF(4, 124 + offset.Y)
+            new PointF(drawArea.X, drawArea.Y + offset.Y)
         ));
     }
 
-    public static async Task<Image?> GetTelegramProfilePicture(User user, ITelegramBotClient botClient,
+    public static async Task<Image?> GetTelegramProfilePicture(User user, Rectangle drawArea,
+        ITelegramBotClient botClient,
         CancellationToken cancellationToken)
     {
-        // 116px x 116px @ 4px 4px
         if (await botClient.GetUserProfilePhotos(
                 user.Id,
                 limit: 1,
@@ -47,7 +46,7 @@ internal static class DrawingUtils
         }
 
         var photo = photos.Photos[0]
-            .MinBy(x => Math.Abs((x.Width - 116) + (x.Height - 116)));
+            .MinBy(x => Math.Abs((x.Width - drawArea.Width) + (x.Height - drawArea.Height)));
 
         using var ms = new MemoryStream();
         await botClient.GetInfoAndDownloadFile(photo!.FileId, ms, cancellationToken);
@@ -55,31 +54,37 @@ internal static class DrawingUtils
         ms.Position = 0;
         var image = await Image.LoadAsync(ms, cancellationToken);
 
-        if (image.Width != 116 || image.Height != 116)
+        if (image.Width != drawArea.Width || image.Height != drawArea.Height)
         {
-            image.Mutate(x => x.Resize(116, 116));
+            image.Mutate(x => x.Resize(drawArea.Width, drawArea.Height));
         }
 
         return image;
     }
 
     public static async Task GenerateUserImageAsync(Stream image, Image<Rgba32> badge,
+        Rectangle drawArea,
         CancellationToken cancellationToken)
     {
-        // 172px x 88px @ 124px 0px
         var encoded = await Image.LoadAsync(image, cancellationToken);
 
-        if (encoded.Width != 172 || encoded.Height != 88)
+        if (encoded.Width != drawArea.Width || encoded.Height != drawArea.Height)
         {
-            encoded.Mutate(x => x.Resize(172, 88));
+            if (drawArea.Width < drawArea.Height)
+            {
+                encoded.Mutate(x => x.Resize(drawArea.Width, 0));
+            }
+            else
+            {
+                encoded.Mutate(x => x.Resize(0, drawArea.Height));
+            }
         }
 
-        badge.Mutate(x => x.DrawImage(encoded, new Point(124, 0), 1.0f));
+        badge.Mutate(x => x.DrawImage(encoded, drawArea.Location, 1.0f));
     }
 
-    public static void GenerateBarcode(string username, Image<Rgba32> badge)
+    public static void GenerateBarcode(string username, Image<Rgba32> badge, Rectangle drawArea)
     {
-        // 70px x 60px @ 226px x 92px
         var content = $"https://t.me/{username}";
         var writer = new ZXing.ImageSharp.BarcodeWriter<Rgba32>
         {
@@ -94,13 +99,12 @@ internal static class DrawingUtils
         };
 
         var barcode = writer.Write(content);
-        barcode.Mutate(x => x.Resize(60, 60));
-        badge.Mutate(x => x.DrawImage(barcode, new Point(226 + 5, 92), 1.0f));
+        barcode.Mutate(x => x.Resize(drawArea.Width, 0));
+        badge.Mutate(x => x.DrawImage(barcode, new Point(drawArea.X + 5, drawArea.Y), 1.0f));
     }
 
-    public static void GenerateId(long id, Image<Rgba32> badge)
+    public static void GenerateId(long id, Image<Rgba32> badge, Rectangle drawArea)
     {
-        // 65px x 28px @ 124px 92px
         var family = Assets.FontCollection.Get("Galactic Simple");
         var font = family.CreateFont(12);
 
@@ -112,12 +116,12 @@ internal static class DrawingUtils
         }
 
         var strId = content.ToString();
-        var offset = Measure(strId, font, 65, 28);
+        var offset = Measure(strId, font, drawArea.Width, drawArea.Height);
         badge.Mutate(x => x.DrawText(
             strId,
             font,
             Color.Red,
-            new PointF(124, 92) + offset
+            drawArea.Location + offset
         ));
     }
 

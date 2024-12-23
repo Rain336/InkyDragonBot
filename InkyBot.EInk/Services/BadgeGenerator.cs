@@ -62,21 +62,22 @@ internal sealed class BadgeGenerator(
         }
 
         var badge = Assets.LargeTemplateImage.Clone();
-        DrawingUtils.GenerateDisplayName(user, badge);
+        DrawingUtils.GenerateDisplayName(user, badge, new Rectangle(4, 124, 226, 28));
 
-        if (await DrawingUtils.GetTelegramProfilePicture(user, botClient, cancellationToken) is { } profilePicture)
+        if (await DrawingUtils.GetTelegramProfilePicture(user, new Rectangle(4, 4, 116, 116), botClient,
+                cancellationToken) is { } profilePicture)
         {
             badge.Mutate(x => x.DrawImage(profilePicture, new Point(4, 4), 1.0f));
         }
 
         if (image is not null)
         {
-            await DrawingUtils.GenerateUserImageAsync(image, badge, cancellationToken);
+            await DrawingUtils.GenerateUserImageAsync(image, badge, new Rectangle(124, 0, 172, 88), cancellationToken);
         }
 
-        DrawingUtils.GenerateBarcode(user.Username!, badge);
+        DrawingUtils.GenerateBarcode(user.Username!, badge, new Rectangle(226, 92, 70, 60));
 
-        DrawingUtils.GenerateId(user.Id, badge);
+        DrawingUtils.GenerateId(user.Id, badge, new Rectangle(124, 92, 65, 28));
 
         using var ms = new MemoryStream();
         await badge.SaveAsync(ms, new JpegEncoder
