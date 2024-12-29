@@ -17,6 +17,7 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Assets\large.png" />
+        <EmbeddedResource Include="Assets\small.png"/>
         <EmbeddedResource Include="Assets\Envy Code R.ttf" />
         <EmbeddedResource Include="Assets\Envy Code R Bold.ttf" />
         <EmbeddedResource Include="Assets\galactic-simple.ttf" />

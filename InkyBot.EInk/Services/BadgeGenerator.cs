@@ -47,6 +47,9 @@ internal sealed class BadgeGenerator(
             case LARGE_HARDWARE_TYPE:
                 await GenerateLargeBadgesAsync(tag, user, image, cancellationToken);
                 break;
+            case SMALL_HARDWARE_TYPE:
+                await GenerateSmallBadgesAsync(tag, user, image, cancellationToken);
+                break;
         }
     }
 
@@ -78,6 +81,61 @@ internal sealed class BadgeGenerator(
         DrawingUtils.GenerateBarcode(user.Username!, badge, new Rectangle(226, 92, 70, 60));
 
         DrawingUtils.GenerateId(user.Id, badge, new Rectangle(124, 92, 65, 28));
+
+        using var ms = new MemoryStream();
+        await badge.SaveAsync(ms, new JpegEncoder
+        {
+            SkipMetadata = true,
+            Quality = 100,
+            Interleaved = true,
+            ColorType = JpegEncodingColor.YCbCrRatio444
+        }, cancellationToken);
+
+        // var image = ms.ToArray();
+        // await distributedCache.SetAsync(
+        //     $"badge:{tag.HardwareType}:{user.Id}",
+        //     image,
+        //     new DistributedCacheEntryOptions
+        //     {
+        //         AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+        //         SlidingExpiration = TimeSpan.FromSeconds(10)
+        //     },
+        //     cancellationToken
+        // );
+
+        await service.UploadImage(
+            tag.Address!,
+            ms.GetBuffer().AsMemory(0, (int)ms.Position),
+            cancellationToken
+        );
+    }
+
+    private async Task GenerateSmallBadgesAsync(
+        TagRecord tag,
+        User user,
+        Stream? image,
+        CancellationToken cancellationToken)
+    {
+        if (Assets.SmallTemplateImage is null)
+        {
+            return;
+        }
+
+        var badge = Assets.SmallTemplateImage.Clone();
+        DrawingUtils.GenerateDisplayName(user, badge, new Rectangle(4, 76, 212, 28));
+
+        if (await DrawingUtils.GetTelegramProfilePicture(user, new Rectangle(0, 0, 72, 72), botClient,
+                cancellationToken) is { } profilePicture)
+        {
+            badge.Mutate(x => x.DrawImage(profilePicture, new Point(0, 0), 1.0f));
+        }
+
+        if (image is not null)
+        {
+            await DrawingUtils.GenerateUserImageAsync(image, badge, new Rectangle(76, 0, 136, 48), cancellationToken);
+        }
+
+        DrawingUtils.GenerateId(user.Id, badge, new Rectangle(76, 49, 65, 24));
 
         using var ms = new MemoryStream();
         await badge.SaveAsync(ms, new JpegEncoder
