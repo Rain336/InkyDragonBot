@@ -56,7 +56,10 @@ internal static class DrawingUtils
 
         if (image.Width != drawArea.Width || image.Height != drawArea.Height)
         {
-            image.Mutate(x => x.Resize(drawArea.Width, drawArea.Height));
+            ResizeOptions opt = new ResizeOptions();
+            opt.Size = new Size(drawArea.Width, drawArea.Height);
+            opt.Mode = ResizeMode.Crop;
+            image.Mutate(x => x.Resize(opt));
         }
 
         return image;
@@ -70,14 +73,7 @@ internal static class DrawingUtils
 
         if (encoded.Width != drawArea.Width || encoded.Height != drawArea.Height)
         {
-            if (drawArea.Width < drawArea.Height)
-            {
-                encoded.Mutate(x => x.Resize(drawArea.Width, 0));
-            }
-            else
-            {
-                encoded.Mutate(x => x.Resize(0, drawArea.Height));
-            }
+            encoded.Mutate(x => x.Resize(drawArea.Width, drawArea.Height));
         }
 
         badge.Mutate(x => x.DrawImage(encoded, drawArea.Location, 1.0f));
