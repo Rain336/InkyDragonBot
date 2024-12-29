@@ -70,7 +70,7 @@ internal static class DrawingUtils
 
         if (encoded.Width != drawArea.Width || encoded.Height != drawArea.Height)
         {
-            if (drawArea.Width > drawArea.Height)
+            if (drawArea.Width < drawArea.Height)
             {
                 encoded.Mutate(x => x.Resize(drawArea.Width, 0));
             }
