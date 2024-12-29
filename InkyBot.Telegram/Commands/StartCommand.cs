@@ -87,6 +87,8 @@ Old Display Address: " + current.DisplayAddress,
             }
 
             await userRepository.UpdateUserDisplayAddress(current, address);
+            if (context.Sender is not null)
+                await badgeGenerator.GenerateBadgesAsync(tag, context.Sender, null, cancellationToken);
         }
         else if (context.Sender is not null)
         {
