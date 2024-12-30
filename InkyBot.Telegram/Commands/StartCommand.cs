@@ -11,7 +11,8 @@ namespace InkyBot.Telegram.Commands;
 public class StartCommand(
     IUserRepository userRepository,
     ITagDatabaseService tagDatabaseService,
-    IBadgeGenerator badgeGenerator
+    IBadgeGenerator badgeGenerator,
+    IOpenEPaperService service
 ) : IConversation
 {
     public async Task ExecuteAsync(IConversationContext context, CancellationToken cancellationToken = default)
@@ -34,38 +35,16 @@ public class StartCommand(
             return;
         }
 
-        var current = await userRepository.GetCurrentUser();
-
-        if (await userRepository.GetUserByPhysicalAddress(address) is { } existing)
-        {
-            if (existing.Id == current?.Id)
-            {
-                await context.ReplyAsync(
-                    "You are already registered as the wearer of that display",
-                    cancellationToken
-                );
-            }
-            else
-            {
-                await context.ReplyAsync(
-                    "That display is already registered or does not exist",
-                    cancellationToken
-                );
-            }
-
-            return;
-        }
-
         if (!tagDatabaseService.TryGetTag(address, out var tag) || tag.Address is null)
         {
             await context.ReplyAsync(
-                "That display is already registered or does not exist",
+                "That display does not exist",
                 cancellationToken
             );
             return;
         }
 
-        if (current is not null)
+        if (await userRepository.GetCurrentUser() is { } current)
         {
             if (current.DisplayAddress is not null)
             {
@@ -80,10 +59,13 @@ Old Display Address: " + current.DisplayAddress,
                     ),
                     cancellationToken
                 );
+
                 if (reply.Data != "confirm")
                 {
                     return;
                 }
+
+                await service.ResetDisplay(current.DisplayAddress, cancellationToken);
             }
 
             await userRepository.UpdateUserDisplayAddress(current, address);
