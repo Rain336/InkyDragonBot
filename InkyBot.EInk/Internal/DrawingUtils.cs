@@ -32,7 +32,9 @@ internal static class DrawingUtils
         ));
     }
 
-    public static async Task<Image?> GetTelegramProfilePicture(User user, Rectangle drawArea,
+    public static async Task<Image?> GetTelegramProfilePicture(
+        User user,
+        Rectangle drawArea,
         ITelegramBotClient botClient,
         CancellationToken cancellationToken)
     {
@@ -65,7 +67,9 @@ internal static class DrawingUtils
         return image;
     }
 
-    public static async Task GenerateUserImageAsync(Stream image, Image<Rgba32> badge,
+    public static async Task GenerateUserImageAsync(
+        Stream image,
+        Image<Rgba32> badge,
         Rectangle drawArea,
         CancellationToken cancellationToken)
     {

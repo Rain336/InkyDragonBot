@@ -72,6 +72,14 @@ internal sealed class OpenEPaperService(HttpClient client) : IOpenEPaperService
             }
         }, "\"mac\"");
 
+        content.Add(new StringContent("1")
+        {
+            Headers =
+            {
+                ContentType = null
+            }
+        }, "\"dither\"");
+
         content.Add(new ReadOnlyMemoryContent(image)
             {
                 Headers =
